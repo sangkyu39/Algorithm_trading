@@ -115,11 +115,20 @@ for i in range(seq_len, len(test_data_scaled)-pred_days +1):
     testX.append(test_data_scaled[i - seq_len:i, 0:test_data_scaled.shape[1]])
     testY.append(test_data_scaled[i + pred_days - 1:i + pred_days, 5])
 
-testX, testY = np.array(testX), np.array(testY)
+testX, testY = np.array(testX), np.squeeze(np.array(testY))
 
 print(testX)
 
 prediction = model.predict(testX)
+prediction = np.squeeze(prediction)
 print(prediction)
 print("--------------------------------")
 print(testY)
+
+
+# 예측 정확도 계산
+accurate_predictions = np.sum(np.sign(prediction) == np.sign(testY))
+total_predictions = len(prediction)
+accuracy = (accurate_predictions / total_predictions) * 100
+
+print(f"예측 정확도: {accuracy:.2f}%")
