@@ -39,7 +39,7 @@ test_dates = dates[n_train:]
 
 # LSTM에 입력하기 위한 데이터 형식 변환
 pred_days = 1  # 예측 기간
-seq_len = 14   # 시퀀스 길이 = 과거 일 수
+seq_len = 30   # 시퀀스 길이 = 과거 일 수
 input_dim = 6  # 입력 차원 = ['Open', 'High', 'Low', 'Close', 'Volume', 'increase']
 
 trainX = []
@@ -67,7 +67,7 @@ model.add(Dense(trainY.shape[1]))
 model.summary()
 
 # 학습률 설정
-learning_rate = 0.012
+learning_rate = 0.003
 # 지정된 학습률로 Adam 옵티마이저 생성
 optimizer = Adam(learning_rate=learning_rate)
 # 컴파일 시 옵티마이저와 손실 함수 설정
@@ -80,7 +80,7 @@ try:
 except:
     print("No weights found, training model from scratch")
     # 모델 학습
-    history = model.fit(trainX, trainY, epochs=80, batch_size=32, validation_split=0.1, verbose=1)
+    history = model.fit(trainX, trainY, epochs=100, batch_size=32, validation_split=0.1, verbose=1)
     # 학습 후 모델 가중치 저장
     model.save_weights('./save_weights/lstm_weights.h5')
 

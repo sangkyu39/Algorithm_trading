@@ -117,8 +117,6 @@ for i in range(seq_len, len(test_data_scaled)-pred_days +1):
 
 testX, testY = np.array(testX), np.squeeze(np.array(testY))
 
-print(testX)
-
 prediction = model.predict(testX)
 prediction = np.squeeze(prediction)
 print(prediction)
