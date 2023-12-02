@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 # read the csv file
-stock_data = pd.read_csv('C:/Users/doriro/Coding/Code/Algorithm_trading/005930.KS.csv')
+stock_data = pd.read_csv('./005930.KS.csv')
 stock_data.drop(['Adj Close'], axis=1, inplace=True) # adjusted close 삭제
 stock_data['increase'] = stock_data['Close'] - stock_data['Open']
 # 이후에 사용하기 위해 원래 'Open' 가격 저장
@@ -39,7 +39,7 @@ test_dates = dates[n_train:]
 
 # LSTM에 입력하기 위한 데이터 형식 변환
 pred_days = 1  # 예측 기간
-seq_len = 14   # 시퀀스 길이 = 과거 일 수
+seq_len = 60  # 시퀀스 길이 = 과거 일 수
 input_dim = 6  # 입력 차원 = ['Open', 'High', 'Low', 'Close', 'Volume', 'increase']
 
 trainX = []
@@ -66,13 +66,6 @@ model.add(Dense(trainY.shape[1]))
 
 model.summary()
 
-# 학습률 설정
-learning_rate = 0.01
-# 지정된 학습률로 Adam 옵티마이저 생성
-optimizer = Adam(learning_rate=learning_rate)
-# 컴파일 시 옵티마이저와 손실 함수 설정
-model.compile(optimizer=optimizer, loss='mse')
-
 # 모델의 가중치 로드 시도
 try:
     model.load_weights('./save_weights/lstm_weights.h5')
@@ -81,7 +74,7 @@ except:
     print("No weights found, training model from scratch")
 
 
-stock_data = pd.read_csv('C:/Users/doriro/Coding/Code/Algorithm_trading/test.csv')
+stock_data = pd.read_csv('./test.csv')
 stock_data.drop(['Adj Close'], axis=1, inplace=True) # adjusted close 삭제
 stock_data['increase'] = stock_data['Close'] - stock_data['Open']
 # 날짜 분리하여 추후 그래프에 사용
@@ -101,13 +94,13 @@ stock_data_scaled = scaler.transform(stock_data)
 stock_data_scaled.shape[0]
 
 # 학습 데이터와 테스트 데이터로 분리
-
+# 데이터는 3달치가 입력되면 될듯 
 test_data_scaled = stock_data_scaled
 test_dates = dates
 
 # LSTM에 입력하기 위한 데이터 형식 변환
 pred_days = 1  # 예측 기간
-seq_len = 14   # 시퀀스 길이 = 과거 일 수
+seq_len = 60   # 시퀀스 길이 = 과거 일 수
 
 testX = []
 testY = []
@@ -116,17 +109,35 @@ for i in range(seq_len, len(test_data_scaled)-pred_days +1):
     testY.append(test_data_scaled[i + pred_days - 1:i + pred_days, 5])
 
 testX, testY = np.array(testX), np.squeeze(np.array(testY))
+testY = testY[1:]
 
 prediction = model.predict(testX)
 prediction = np.squeeze(prediction)
+print(test_dates[seq_len:])
+print("--------------------------------")
 print(prediction)
 print("--------------------------------")
 print(testY)
 
 
-# 예측 정확도 계산
-accurate_predictions = np.sum(np.sign(prediction) == np.sign(testY))
-total_predictions = len(prediction)
-accuracy = (accurate_predictions / total_predictions) * 100
-
+# 예측 정확도 계산 
+def calculate_positive_probability(predicted_values, original_values):
+    total_count = 0
+    positive_count = 0
+    money = 0
+    for predicted, original in zip(predicted_values, original_values):
+        if predicted > 0:
+            total_count += 1
+            money += original
+            print(predicted, original)
+            if original > 0:
+                positive_count += 1
+                
+    if total_count > 0:
+        positive_probability = (positive_count / total_count) * 100
+        print(money)
+        return positive_probability
+    else:
+        return 0
+accuracy = calculate_positive_probability(prediction, testY) 
 print(f"예측 정확도: {accuracy:.2f}%")

@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 # read the csv file
-stock_data = pd.read_csv('C:/Users/doriro/Coding/Code/Algorithm_trading/005930.KS.csv')
+stock_data = pd.read_csv('./005930.KS.csv')
 stock_data.drop(['Adj Close'], axis=1, inplace=True) # adjusted close 삭제
 stock_data['increase'] = stock_data['Close'] - stock_data['Open']
 # 이후에 사용하기 위해 원래 'Open' 가격 저장
@@ -39,7 +39,7 @@ test_dates = dates[n_train:]
 
 # LSTM에 입력하기 위한 데이터 형식 변환
 pred_days = 1  # 예측 기간
-seq_len = 30   # 시퀀스 길이 = 과거 일 수
+seq_len = 60   # 시퀀스 길이 = 과거 일 수
 input_dim = 6  # 입력 차원 = ['Open', 'High', 'Low', 'Close', 'Volume', 'increase']
 
 trainX = []
@@ -67,7 +67,7 @@ model.add(Dense(trainY.shape[1]))
 model.summary()
 
 # 학습률 설정
-learning_rate = 0.003
+learning_rate = 0.004
 # 지정된 학습률로 Adam 옵티마이저 생성
 optimizer = Adam(learning_rate=learning_rate)
 # 컴파일 시 옵티마이저와 손실 함수 설정
@@ -75,12 +75,9 @@ model.compile(optimizer=optimizer, loss='mse')
 
 # 모델의 가중치 로드 시도
 try:
-    model.load_weights('./save_weights/lstm_weights.h5')
-    print("Loaded model weights from disk")
-except:
     print("No weights found, training model from scratch")
     # 모델 학습
-    history = model.fit(trainX, trainY, epochs=100, batch_size=32, validation_split=0.1, verbose=1)
+    history = model.fit(trainX, trainY, epochs=70, batch_size=32, validation_split=0.1, verbose=1)
     # 학습 후 모델 가중치 저장
     model.save_weights('./save_weights/lstm_weights.h5')
 
@@ -88,10 +85,12 @@ except:
     plt.plot(history.history['val_loss'], label='Validation loss')
     plt.legend()
     plt.show()
+except:
+    print("none")
 
 # 예측
 prediction = model.predict(testX)
-
+prediction = np.squeeze(prediction)
 print(prediction.shape, testY.shape)
 
 # 예측 결과를 평균값으로 채운 배열 생성
@@ -120,9 +119,10 @@ plt.figure(figsize=(14, 5))
 # 원래 'increase' 가격 그래프
 plt.plot(dates, original_increase, color='green', label='Original Increase Price')
 
+testY = np.squeeze(testY)
 # 실제와 예측 그래프
-plt.plot(test_dates[seq_len:], testY_original, color='blue', label='Actual Increase Price')
-plt.plot(test_dates[seq_len:], y_pred, color='red', linestyle='--', label='Predicted Increase Price')
+plt.plot(test_dates[seq_len:], testY, color='blue', label='Actual Increase Price')
+plt.plot(test_dates[seq_len:], prediction, color='red', linestyle='--', label='Predicted Increase Price')
 plt.xlabel('Date')
 plt.ylabel('Increase Price')
 plt.title('Original, Actual and Predicted Increase Price')
@@ -138,12 +138,12 @@ plt.figure(figsize=(14, 5))
 adjusted_start = zoom_start - seq_len
 
 plt.plot(test_dates[zoom_start:zoom_end],
-         testY_original[adjusted_start:zoom_end - zoom_start + adjusted_start],
+         testY[adjusted_start:zoom_end - zoom_start + adjusted_start],
          color='blue',
          label='Actual Increase Price')
 
 plt.plot(test_dates[zoom_start:zoom_end],
-         y_pred[adjusted_start:zoom_end - zoom_start + adjusted_start ],
+         prediction[adjusted_start:zoom_end - zoom_start + adjusted_start ],
          color='red',
          linestyle='--',
          label='Predicted Increase Price')
