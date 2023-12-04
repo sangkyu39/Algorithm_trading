@@ -10,10 +10,10 @@ import matplotlib.pyplot as plt
 # read the csv file
 stock_data = pd.read_csv('./005930.KS.csv')
 stock_data.drop(['Adj Close'], axis=1, inplace=True) # adjusted close 삭제
-stock_data['increase'] = stock_data['Close'] - stock_data['Open']
+stock_data['Change'] = stock_data['Close'] - stock_data['Open']
 # 이후에 사용하기 위해 원래 'Open' 가격 저장
 original_open = stock_data['Open'].values
-original_increase = stock_data['increase'].values
+original_increase = stock_data['Change'].values
 # 날짜 분리하여 추후 그래프에 사용
 dates = pd.to_datetime(stock_data['Date'])
 
