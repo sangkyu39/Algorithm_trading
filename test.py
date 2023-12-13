@@ -62,24 +62,9 @@ testY = testY[1:]
 prediction = model.predict(testX)
 prediction = np.squeeze(prediction)
 
-# 예측 정확도 계산 
-def calculate_positive_probability(predicted_values, original_values):
-    total_count = 0
-    positive_count = 0
-    money = 0
-    for predicted, original in zip(predicted_values, original_values):
-        if predicted > 0:
-            total_count += 1
-            money += original
-            print(predicted, original)
-            if original > 0:
-                positive_count += 1
-                
-    if total_count > 0:
-        positive_probability = (positive_count / total_count) * 100
-        print(money)
-        return positive_probability
-    else:
-        return 0
-accuracy = calculate_positive_probability(prediction, testY) 
-print(f"예측 정확도: {accuracy:.2f}%")
+opt = prediction[-1]
+
+if (opt > 0):
+    print("BUY")
+else:
+    print("NO")
